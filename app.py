@@ -1,14 +1,19 @@
 import streamlit as st
 import pandas as pd
 
+# ----- Nastavenia -----
 EXCEL_FILE = "data.xlsx"
 
 CHIP_COL = "Číslo čipu"
 DATE_COL = "Dátum zvozu"
 KG_COL = "Počet kg odpadu"
 
+PRICE_PER_KG = 0.25  # € / kg (podľa VZN)
+# ----------------------
+
 
 def normalize_chip(x) -> str:
+    """Odstráni medzery a pomlčky, aby vyhľadávanie fungovalo aj pri rôznom zápise."""
     if x is None:
         return ""
     s = str(x).strip()
@@ -16,12 +21,7 @@ def normalize_chip(x) -> str:
 
 
 def parse_kg(x):
-    """
-    Zvládne:
-    - čísla z Excelu (float/int)
-    - text "12,5" / "12.5"
-    - text "12,5 kg"
-    """
+    """Zvládne čísla aj text typu '12,5' alebo '12,5 kg'."""
     if x is None:
         return None
     s = str(x).strip().lower()
@@ -49,7 +49,7 @@ def load_data():
     df[CHIP_COL] = df[CHIP_COL].astype(str).apply(normalize_chip)
     df[KG_COL] = df[KG_COL].apply(parse_kg)
     df[DATE_COL] = pd.to_datetime(df[DATE_COL], errors="coerce")
-    df = df.dropna(subset=[DATE_COL])  # pre filter musíme mať dátum
+    df = df.dropna(subset=[DATE_COL])  # dátum je nutný pre filter
     return df
 
 
@@ -57,17 +57,17 @@ st.set_page_config(page_title="Kg odpadu podľa čipu", layout="centered")
 st.title("Kg odpadu podľa čipu")
 st.caption("Zadaj číslo čipu a vyber obdobie. Výsledok sa spočíta aj pri opakovaných zvozoch.")
 
-# --- Skrytý ADMIN refresh: zobrazí sa len cez tajný link ---
-# Použitie: https://tvoja-app.streamlit.app/?admin=TAJNY_KLUC
+# --- Skrytý ADMIN režim (len cez tajný link) ---
+# Admin link: https://tvoja-app.streamlit.app/?admin=HODNOTA_ZO_SECRETS
 ADMIN_KEY = st.secrets.get("ADMIN_KEY", "")
-is_admin = (st.query_params.get("admin", "") == ADMIN_KEY) and (ADMIN_KEY != "")
+is_admin = (ADMIN_KEY != "") and (st.query_params.get("admin", "") == ADMIN_KEY)
 
 if is_admin:
     st.warning("Admin režim")
     if st.button("Obnoviť dáta"):
         st.cache_data.clear()
         st.success("Dáta obnovené (cache vyčistená).")
-# -----------------------------------------------------------
+# ------------------------------------------------
 
 try:
     df = load_data()
@@ -105,12 +105,19 @@ if chip_in:
         st.warning("Pre zadaný dátumový rozsah neboli nájdené žiadne záznamy.")
         st.stop()
 
-    total = hits_f[KG_COL].dropna().sum()
+    total_kg = hits_f[KG_COL].dropna().sum()
     count_pickups = len(hits_f)
+    est_amount = total_kg * PRICE_PER_KG
 
-    st.success(f"Spolu: {total:.2f} kg")
+    st.success(f"Spolu: {total_kg:.2f} kg")
     st.info(f"Počet zvozov v období: {count_pickups}")
+
+    st.subheader("Predbežná suma podľa VZN")
+    st.write(f"Sadzba: **{PRICE_PER_KG:.2f} € / kg**")
+    st.write(f"Predbežná suma: **{est_amount:.2f} €**")
 
     view = hits_f[[DATE_COL, KG_COL]].sort_values(by=DATE_COL, ascending=False).copy()
     view.columns = ["Dátum zvozu", "Počet kg odpadu"]
-    st.dataframe(view, use_container_width=True)
+    st.caption("Detailné záznamy:")
+    st.dataframe(view, width="stretch")
+
