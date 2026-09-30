@@ -112,7 +112,7 @@ if chip_in:
     st.success(f"Spolu: {total_kg:.2f} kg")
     st.info(f"Počet zvozov v období: {count_pickups}")
 
-    st.subheader("Predbežná suma podľa VZN")
+    st.subheader("Predbežná maximálna suma podľa Zákona 582/2004 Z.z. o miestnych daniach a miestnom poplatku za komunálne odpady a drobné stavebné odpady")
     st.write(f"Sadzba: **{PRICE_PER_KG:.2f} € / kg**")
     st.write(f"Predbežná suma: **{est_amount:.2f} €**")
 
