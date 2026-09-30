@@ -8,7 +8,7 @@ CHIP_COL = "Číslo čipu"
 DATE_COL = "Dátum zvozu"
 KG_COL = "Počet kg odpadu"
 
-PRICE_PER_KG = 0.25  # € / kg (podľa VZN)
+PRICE_PER_KG = 0.20  # € / kg (maximálna cena za kg odpadu)
 # ----------------------
 
 
