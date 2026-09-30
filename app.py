@@ -53,8 +53,8 @@ def load_data():
     return df
 
 
-st.set_page_config(page_title="Kg odpadu podľa čipu", layout="centered")
-st.title("Kg odpadu podľa čipu")
+st.set_page_config(page_title="RASTISLAVICE - hmotnosť odpadu podľa čipu", layout="centered")
+st.title("RASTISLAVICE - hmotnosť odpadu podľa čipu")
 st.caption("Zadaj číslo čipu a vyber obdobie. Výsledok sa spočíta aj pri opakovaných zvozoch.")
 
 # --- Skrytý ADMIN režim (len cez tajný link) ---
